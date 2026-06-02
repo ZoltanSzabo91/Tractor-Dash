@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tractor Dash</title>
+    <style>
+        body{
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #222;
+            color: white;
+            position: relative;
+        }
+        #startGomb{
+            align-items: center;
+            margin: auto;
+            padding: 0.7rem 3rem;
+            background: rgba(255, 16, 16, 0.664);
+            border: none;
+            border-radius: 8px;
+            color: wheat;
+            box-shadow: 2px 5px 5px black;
+            transition: all 0.2s ease;
+        }
+        #startGomb:active{
+            scale: 0.9;
+        }
+        #startGomb:disabled{
+            background: rgb(87, 0, 0);
+            color: #222;
+        }
+        .statisztika{
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 1rem;
+        }
+        #jatekTer{
+            width: 300px;
+            height: 400px;
+            background-color: #555;
+            position: relative;
+            overflow: hidden;
+            border: 4px dashed #fff;
+            margin: 0 auto;
+            border-radius: 10px;
+        }
+        .auto, .akadaly, .erme, .jarmu{
+            display: flex;
+            justify-content: center;
+            height: 40px;
+            line-height: 40px;
+            width: 40px;
+            font-size: 33px;
+            text-align: center;
+            /*border: solid 1px red;*/
+            overflow: hidden;
+            position: absolute;
+        }
+        .auto{
+            top: 340px;
+            left: 130px;
+            transition: left 0.1s;
+            z-index: 10;
+        }
+        .akadaly{
+            text-align: center;
+            top: -50px;
+            width: 29px;
+        }
+        .erme{
+            left: 100px;
+            top: -300px;
+        }
+        .jarmu{
+            top: -100px;
+            left: 150px;
+            width: 40px;
+        }
+        .vezerlok{
+            text-align: center;
+            margin: auto;
+            width: fit-content;
+            display: flex;
+            flex-direction: column;
+        }
+        .iranyGomb{
+            align-items: center;
+            margin: auto;
+            padding: 0.7rem 3rem;
+            background: rgba(19, 92, 1, 0.664);
+            border: none;
+            border-radius: 8px;
+            color: wheat;
+            box-shadow: 2px 5px 5px black;
+            transition: all 0.2s ease;
+        }
+        .iranyGomb:active{
+            scale: 0.9;
+            transform: translateY(2px);
+        }
+        .gyozelem{
+            background-color: #000000;
+            opacity: 0.8;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            margin: auto;
+            position: absolute;
+            top: 300px;
+            display: none;
+        }
+        .vereseg{
+            background-color: #000000;
+            opacity: 0.8;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: auto;
+            text-align: center;
+            position: absolute;
+            top: 300px;
+            display: none;
+        }
+        .reveal{
+            display: block;
+        }
+        #log{
+            width: 300px;
+            height: 200px;
+            margin: 1rem auto;
+            background: #555;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body>
+    <h2 style="text-align: center;">Gyűjts össze 170 nasit a győzelemhez</h2>
+
+    <div class="vezerlok">
+        <label for="neh"></label>
+        <select id="neh">
+            <option value="0">Könnyű</option>
+            <option value="1">Normál</option>
+            <option value="2">Nehéz</option>
+            <option value="3">Végtelen</option>
+        </select>
+        <button id="startGomb" onclick="jatekInditasa()">Start</button>
+    </div>
+
+    <div class="statisztika">
+        <div>Kikerülve: <span id="pontKijelzo" class="zold">0</span></div>
+        <div>Nasi: <span id="ermeKijelzo" class="arany">0 / 170</span></div>
+    </div>
+
+    <div id="jatekTer">
+        <div id="ak" class="akadaly">🏃‍♂️</div>
+        <div id="penz" class="erme">🥞</div>
+        <div id="jatekos" class="auto">🚜</div>
+        <div id="jarmu" class="jarmu">🛴</div>
+    </div>
+
+    <div class="vezerlok">
+        <p><i>Irányítás: ⬅➡ nyilakkal vagy billentyűzettel!</i></p>
+        <div>
+        <button class="iranyGomb" onclick="mozgat(-40)">⬅</button>
+        <button class="iranyGomb" onclick="mozgat(40)">➡</button>
+        </div>
+    </div>
+    <div id="log">
+
+    </div>
+
+    <div class="gyozelem">
+        <h3 style="color: green;">Na jó... elég volt 10... Győzelem!!! Büszke vagyok rád!</h3>
+    </div>
+    <div class="vereseg">
+        <h3 style="color: red;">Elütöttél valakit! Szégyelld magad! Itt a játék vége...</h3>
+    </div>
+
+    <script>
+        const startGomb = document.getElementById("startGomb");
+        const human = document.getElementById("ak");
+        const suti = document.getElementById("penz");
+        const auto = document.getElementById("jatekos");
+        const jarmu = document.getElementById("jarmu");
+        const kijelzo = document.getElementById("ermeKijelzo");
+        const win = document.querySelector(".gyozelem");
+        const lose = document.querySelector(".vereseg");
+        
+        function loging(){
+            document.getElementById("log").innerHTML = "roller: left: " + jarmuLeft + " top:" + jarmuTop + " speed:" + speedjarmu + "<br>" +
+                                                        "Ember " + "left: " + humanLeft + " top:" + humanTop + " speed:" + speed + "<br>" +
+                                                        "auto: left: " + autoLeft;
+        }
+
+        function jatekInditasa(){
+            const neh = document.getElementById("neh").value;
+            
+            function run(){
+                autoLeft = 130;
+                humanLeft = 0;
+                humanTop = -100;
+                sutiTop = -300;
+                sutiLeft = 100;
+                sutiSzam = 0;
+                jarmuTop = -100;
+                jarmuLeft = 150;
+                
+                auto.style.left = autoLeft + "px";
+                human.style.top = humanTop + "px";
+                suti.style.top = sutiTop + "px";
+                jarmu.style.top = jarmuTop + "px";
+                kijelzo.innerText = sutiSzam + "/170";
+
+                if (neh === "0"){
+                    sutiinditas();
+                    emberinditas();
+                } else if (neh === "1"){
+                    jarmuinditas();
+                    sutiinditas();
+                } else if (neh === "2"){
+                    sutiinditas();
+                    emberinditas();
+                    jarmuinditas();
+                } else if (neh === "3"){
+                    endless();
+                }
+            };
+            startGomb.disabled = true;
+            run();
+        };
+
+        let humanFlow;
+        let sutiFlow;
+        let jarmuFlow;
+        let autoLeft = 130;
+        let humanLeft = 0;
+        let humanTop = -50;
+        let sutiTop = -300;
+        let sutiLeft = 100;
+        let sutiSzam = 0;
+        let jarmuTop = -100;
+        let jarmuLeft = 150;
+        let humanFlowEndless;
+        let sutiFlowEndless;
+        let jarmuFlowEndless;
+        let speedcounter = 0;
+        let speedcounterjarmu = 0;
+        let speed = 40;
+        let speedjarmu = 30;
+        let megymar = false;
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') mozgat(40);
+            if (e.key === 'ArrowLeft') mozgat(-40);
+        })
+    
+
+        function mozgat(x){
+            if( autoLeft + x < 0 || autoLeft + 40 + x > 300){
+                if (x < 0){
+                    autoLeft = 0;
+                    auto.style.left = autoLeft + "px";
+                } else {
+                    autoLeft= 260;
+                    auto.style.left = autoLeft + "px";
+                }
+            } else {
+                autoLeft= autoLeft + x;
+                auto.style.left = autoLeft + "px";
+            }  
+        };
+
+        function emberinditas(){
+            humanFlow = setInterval(() => {
+                if (humanLeft + 29 >= autoLeft && autoLeft + 40 > humanLeft && humanTop >= 340 && humanTop <= 360){
+                    clearInterval(humanFlow);
+                    clearInterval(sutiFlow);
+                    clearInterval(jarmuFlow);
+                    startGomb.disabled = false;
+                    lose.classList.add("reveal")
+                } else if (humanTop >= 450){
+                    humanTop = -50;
+                    humanLeft = Math.floor(Math.random() * 250);
+                    human.style.left = humanLeft + "px";
+                } else {
+                    humanTop += 5;
+                    human.style.top = humanTop + "px";
+                }
+            }, 13);
+        }
+
+        function sutiinditas(){
+            sutiFlow = setInterval(() => {
+                if (sutiLeft + 40 >= autoLeft && autoLeft + 40 > sutiLeft && sutiTop >= 340 && sutiTop <= 360){
+                    if (sutiSzam < 10){
+                        sutiSzam = sutiSzam + 1;
+                    kijelzo.innerText = sutiSzam + "/170";
+                    sutiLeft = Math.floor(Math.random() * 260);
+                    sutiTop = -300;
+                    suti.style.top = sutiTop + "px";
+                    suti.style.left = sutiLeft + "px";
+                    }  else {
+                        win.classList.add("reveal");
+                        startGomb.disabled = false;
+                        clearInterval(humanFlow);
+                        clearInterval(jarmuFlow);
+                        clearInterval(sutiFlow);
+                    }
+                    
+                } else if (sutiTop >= 750){
+                    sutiLeft = Math.floor(Math.random() * 260);
+                    sutiTop = -300;
+                    suti.style.left = sutiLeft + "px";
+                } else {
+                    sutiTop += 5;
+                    suti.style.top = sutiTop + "px";
+                }
+            }, 15);
+        }
+
+        function jarmuinditas(){
+            jarmuFlow = setInterval(() => {
+                if (jarmuLeft + 40 >= autoLeft && autoLeft + 40 > jarmuLeft && jarmuTop >= 340 && jarmuTop <= 360){
+                    clearInterval(humanFlow);
+                    clearInterval(jarmuFlow);
+                    clearInterval(sutiFlow);
+                    startGomb.disabled = false;
+                    lose.classList.add("reveal")
+                } else if (jarmuTop >= 450){
+                    jarmuTop = -100;
+                    jarmuLeft = Math.floor(Math.random() * 250);
+                    jarmu.style.left = jarmuLeft + "px";
+                } else {
+                    jarmuTop += 7;
+                    jarmu.style.top = jarmuTop + "px";
+                }
+            }, 13);
+        }
+
+        function endlessHuman(){
+                humanFlowEndless = setInterval(() => {
+                    if (humanLeft + 29 >= autoLeft && autoLeft + 40 > humanLeft && humanTop >= 340 && humanTop <= 360){
+                        clearInterval(humanFlowEndless);
+                        clearInterval(jarmuFlowEndless);
+                        clearInterval(sutiFlowEndless);
+                        speedcounter = 0;
+                        speed = 40;
+                        megymar = false;
+                        startGomb.disabled = false;
+                        lose.classList.add("reveal")
+                        alert("human")
+                        loging();
+                    } else if (speed === 35 && megymar === false){
+                        megymar = true;
+                        endlessJarmu();
+                    } else if (speedcounter === 2 && speed > 14){
+                        speed = speed - 5;
+                        clearInterval(humanFlowEndless);
+                        speedcounter = 0;
+                        endlessHuman();
+                    } else if (humanTop >= 450){
+                        humanTop = -50;
+                        humanLeft = Math.floor(Math.random() * 250);
+                        human.style.left = humanLeft + "px";
+                        speedcounter++;
+                    } else {
+                    humanTop += 5;
+                    human.style.top = humanTop + "px";
+                    }
+                }, speed);};
+
+        function endlessSuti(){
+             sutiFlowEndless = setInterval(() => {
+                if (sutiLeft + 40 >= autoLeft && autoLeft + 40 > sutiLeft && sutiTop >= 340 && sutiTop <= 360){
+                    sutiSzam = sutiSzam + 1;
+                    kijelzo.innerText = sutiSzam;
+                    sutiLeft = Math.floor(Math.random() * 260);
+                    sutiTop = -300;
+                    suti.style.top = sutiTop + "px";
+                    suti.style.left = sutiLeft + "px";
+                } else if (sutiTop >= 750){
+                    sutiLeft = Math.floor(Math.random() * 260);
+                    sutiTop = -300;
+                    suti.style.left = sutiLeft + "px";
+                } else {
+                    sutiTop += 5;
+                    suti.style.top = sutiTop + "px";
+                }
+            }, 25);
+        }
+
+        function endlessJarmu(){
+            jarmuFlowEndless = setInterval(() => {
+                if (jarmuLeft + 40 >= autoLeft && autoLeft + 40 > jarmuLeft && jarmuTop >= 340 && jarmuTop <= 360){
+                    clearInterval(humanFlowEndless);
+                    clearInterval(jarmuFlowEndless);
+                    clearInterval(sutiFlowEndless);
+                    speedcounterjarmu = 0;
+                    speedjarmu = 30;
+                    megymar = false;
+                    startGomb.disabled = false;
+                    lose.classList.add("reveal")
+                    alert("jarmu")
+                    loging()
+                } else if (speedcounterjarmu === 2 && speedjarmu > 9){
+                    speedjarmu = speedjarmu - 5;
+                    clearInterval(jarmuFlowEndless);
+                    speedcounterjarmu = 0;
+                    endlessJarmu();
+                } else if (jarmuTop >= 450){
+                    jarmuTop = -50;
+                    jarmuLeft = Math.floor(Math.random() * 250);
+                    jarmu.style.left = jarmuLeft + "px";
+                    speedcounterjarmu++;
+                } else {
+                jarmuTop += 5;
+                jarmu.style.top = jarmuTop + "px";
+                }
+            }, speedjarmu)
+        }
+
+        function endless(){
+            speed = 40;
+            speedjarmu = 30;
+            speedcounter = 0;
+            speedcounterjarmu = 0;
+            megymar = false;
+            auto.style.left = autoLeft + "px";
+            human.style.top = humanTop + "px";
+            suti.style.top = sutiTop + "px";
+            jarmu.style.top = jarmuTop + "px";
+            kijelzo.innerText = sutiSzam + "/170";
+            endlessHuman();
+            endlessSuti();
+        }
+
+        
+
+        document.addEventListener('click', () => {
+            if (win.classList.contains("reveal")){
+                win.classList.remove("reveal");
+            };
+            if (lose.classList.contains("reveal")){
+                lose.classList.remove("reveal");
+            };
+        });
+
+        
+        
+    </script>
+</body>
+
+</html>
